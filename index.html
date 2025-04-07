@@ -1,171 +1,178 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Suivi Nutritionnel</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
     <div class="container">
-      <header>
-        <h1>Mon Suivi Nutritionnel</h1>
-        <nav>
-          <button id="nav-dashboard" class="active">Tableau de bord</button>
-          <button id="nav-weight">Suivi du poids</button>
-          <button id="nav-food">Aliments</button>
-        </nav>
-      </header>
+        <header>
+            <h1>Mon Suivi Nutritionnel</h1>
+            <nav>
+                <button id="nav-dashboard" class="active">Tableau de bord</button>
+                <button id="nav-profile">Profil</button>
+                <button id="nav-weight">Poids</button>
+                <button id="nav-food">Aliments</button>
+                <button id="nav-activity">Activités</button>
+            </nav>
+        </header>
 
-      <main>
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="active-section">
-          <h2>Tableau de bord</h2>
-          <div class="dashboard-stats">
-            <div class="stat-card">
-              <h3>Poids actuel</h3>
-              <p id="current-weight">--</p>
-            </div>
-            <div class="stat-card">
-              <h3>Calories aujourd'hui</h3>
-              <p id="today-calories">0 kcal</p>
-            </div>
-          </div>
-          <div class="recent-meals">
-            <h3>Repas récents</h3>
-            <ul id="recent-meals-list">
-              <!-- Rempli dynamiquement -->
-            </ul>
-          </div>
-        </section>
-
-        <!-- Weight Tracking Section -->
-        <section id="weight-section">
-          <h2>Suivi du poids</h2>
-          <div class="weight-form">
-            <div class="form-group">
-              <label for="weight-input">Nouveau poids (kg):</label>
-              <input
-                type="number"
-                id="weight-input"
-                step="0.1"
-                min="20"
-                max="300"
-              />
-            </div>
-            <div class="form-group">
-              <label for="weight-date">Date:</label>
-              <input type="date" id="weight-date" />
-            </div>
-            <button id="save-weight">Enregistrer</button>
-          </div>
-          <div class="weight-history">
-            <h3>Historique</h3>
-            <table id="weight-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Poids (kg)</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="weight-history-body">
-                <!-- Rempli dynamiquement -->
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Food Tracking Section -->
-        <section id="food-section">
-          <h2>Aliments</h2>
-          <div class="food-tabs">
-            <button id="tab-add-food" class="active-tab">
-              Ajouter un repas
-            </button>
-            <button id="tab-food-library">Bibliothèque d'aliments</button>
-          </div>
-
-          <div id="add-food-panel" class="food-panel active-panel">
-            <h3>Composer un repas</h3>
-            <div class="meal-form">
-              <div class="form-group">
-                <label for="meal-name">Nom du repas:</label>
-                <input type="text" id="meal-name" />
-              </div>
-              <div class="form-group">
-                <label for="meal-date">Date:</label>
-                <input type="date" id="meal-date" />
-              </div>
-              <div class="search-food">
-                <input
-                  type="text"
-                  id="food-search"
-                  placeholder="Rechercher un aliment..."
-                />
-                <div id="search-results">
-                  <!-- Résultats de recherche ici -->
+        <main>
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="active-section">
+                <h2>Tableau de bord</h2>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Poids actuel</h3>
+                        <p id="current-weight">--</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Objectif quotidien</h3>
+                        <p id="daily-goal">-- kcal</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Consommées aujourd'hui</h3>
+                        <p id="today-calories">0 kcal</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Brûlées aujourd'hui</h3>
+                        <p id="today-burned">0 kcal</p>
+                    </div>
                 </div>
-              </div>
-              <div class="selected-foods">
-                <h4>Aliments sélectionnés</h4>
-                <ul id="selected-foods-list">
-                  <!-- Liste des aliments sélectionnés -->
-                </ul>
-                <p>
-                  Total calories: <span id="meal-total-calories">0</span> kcal
-                </p>
-              </div>
-              <button id="save-meal">Enregistrer le repas</button>
-            </div>
-          </div>
+                
+                <div class="chart-container">
+                    <h3>Répartition des macronutriments</h3>
+                    <canvas id="macros-chart"></canvas>
+                </div>
+                
+                <div class="recent-meals">
+                    <h3>Repas récents</h3>
+                    <ul id="recent-meals-list">
+                        <!-- Rempli dynamiquement -->
+                    </ul>
+                </div>
+                
+                <div class="recent-activities">
+                    <h3>Activités récentes</h3>
+                    <ul id="recent-activities-list">
+                        <!-- Rempli dynamiquement -->
+                    </ul>
+                </div>
+            </section>
 
-          <div id="food-library-panel" class="food-panel">
-            <h3>Bibliothèque d'aliments</h3>
-            <div class="add-food-form">
-              <div class="form-group">
-                <label for="food-name">Nom de l'aliment:</label>
-                <input type="text" id="food-name" />
-              </div>
-              <div class="form-group">
-                <label for="food-calories">Calories (kcal/100g):</label>
-                <input type="number" id="food-calories" min="0" />
-              </div>
-              <div class="form-group">
-                <label for="food-protein">Protéines (g/100g):</label>
-                <input type="number" id="food-protein" min="0" step="0.1" />
-              </div>
-              <div class="form-group">
-                <label for="food-carbs">Glucides (g/100g):</label>
-                <input type="number" id="food-carbs" min="0" step="0.1" />
-              </div>
-              <div class="form-group">
-                <label for="food-fat">Lipides (g/100g):</label>
-                <input type="number" id="food-fat" min="0" step="0.1" />
-              </div>
-              <button id="add-food">Ajouter l'aliment</button>
-            </div>
-            <div class="food-library-list">
-              <h4>Mes aliments</h4>
-              <table id="food-library-table">
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Calories</th>
-                    <th>P/G/L</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="food-library-body">
-                  <!-- Rempli dynamiquement -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+            <!-- Profile Section -->
+            <section id="profile-section">
+                <h2>Mon Profil</h2>
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label for="user-gender">Sexe:</label>
+                        <select id="user-gender">
+                            <option value="male">Homme</option>
+                            <option value="female">Femme</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-age">Âge:</label>
+                        <input type="number" id="user-age" min="18" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-height">Taille (cm):</label>
+                        <input type="number" id="user-height" min="100" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-activity-level">Niveau d'activité:</label>
+                        <select id="user-activity-level">
+                            <option value="1.2">Sédentaire (peu ou pas d'exercice)</option>
+                            <option value="1.375">Légèrement actif (exercice léger 1-3 jours/semaine)</option>
+                            <option value="1.55">Modérément actif (exercice modéré 3-5 jours/semaine)</option>
+                            <option value="1.725">Très actif (exercice intense 6-7 jours/semaine)</option>
+                            <option value="1.9">Extrêmement actif (exercice très intense ou travail physique)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-weight">Poids objectif (kg):</label>
+                        <input type="number" id="goal-weight" step="0.1" min="40" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-date">Date objectif:</label>
+                        <input type="date" id="goal-date">
+                    </div>
+                    <div class="suggested-dates">
+                        <h4>Dates suggérées:</h4>
+                        <div id="suggested-dates-list">
+                            <!-- Dates suggérées générées par JavaScript -->
+                        </div>
+                    </div>
+                    <button id="save-profile">Enregistrer le profil</button>
+                </div>
+                
+                <div class="calorie-needs">
+                    <h3>Besoins caloriques quotidiens</h3>
+                    <div class="calorie-info">
+                        <div class="info-item">
+                            <span>Métabolisme de base:</span>
+                            <span id="bmr-value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span>Maintien du poids:</span>
+                            <span id="maintenance-value">--</span>
+                        </div>
+                        <div class="info-item highlight">
+                            <span>Objectif recommandé:</span>
+                            <span id="target-value">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <script src="app.js"></script>
-  </body>
-</html>
+            <!-- Weight Tracking Section -->
+            <section id="weight-section">
+                <h2>Suivi du poids</h2>
+                <div class="weight-form">
+                    <div class="form-group">
+                        <label for="weight-input">Nouveau poids (kg):</label>
+                        <input type="number" id="weight-input" step="0.1" min="20" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="weight-date">Date:</label>
+                        <input type="date" id="weight-date">
+                    </div>
+                    <button id="save-weight">Enregistrer</button>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Évolution du poids</h3>
+                    <canvas id="weight-chart"></canvas>
+                </div>
+                
+                <div class="weight-history">
+                    <h3>Historique</h3>
+                    <table id="weight-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Poids (kg)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weight-history-body">
+                            <!-- Rempli dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Food Tracking Section -->
+            <section id="food-section">
+                <h2>Aliments</h2>
+                <div class="food-tabs">
+                    <button id="tab-add-food" class="active-tab">Ajouter un repas</button>
+                    <button id="tab-food-library">Bibliothèque d'aliments</button>
+                    <button id="tab-scan-food">Scanner un aliment</button>
+                </div>
+                
+                <div id="add-food-panel" class="food-panel active-panel">
+                    <h3>Composer un repas</h
