@@ -3,6 +3,7 @@ const USER_DATA_KEY = "nutritionTrackerUserData";
 const WEIGHT_DATA_KEY = "nutritionTrackerWeightData";
 const FOOD_DATA_KEY = "nutritionTrackerFoodData";
 const ACTIVITY_DATA_KEY = "nutritionTrackerActivityData";
+const FOOD_LIBRARY_KEY = "nutritionTrackerFoodLibrary";
 
 // Données utilisateur par défaut
 const defaultUserData = {
@@ -15,11 +16,110 @@ const defaultUserData = {
   currentWeight: 75,
 };
 
+// Base de données d'aliments par défaut
+const defaultFoodLibrary = [
+  {
+    name: "Pomme",
+    calories: 52,
+    proteins: 0.3,
+    carbs: 14,
+    fats: 0.2,
+    portion: "1 moyenne (100g)",
+  },
+  {
+    name: "Banane",
+    calories: 89,
+    proteins: 1.1,
+    carbs: 23,
+    fats: 0.3,
+    portion: "1 moyenne (120g)",
+  },
+  {
+    name: "Poulet grillé",
+    calories: 165,
+    proteins: 31,
+    carbs: 0,
+    fats: 3.6,
+    portion: "100g",
+  },
+  {
+    name: "Riz blanc cuit",
+    calories: 130,
+    proteins: 2.7,
+    carbs: 28,
+    fats: 0.3,
+    portion: "100g",
+  },
+  {
+    name: "Œuf",
+    calories: 78,
+    proteins: 6.3,
+    carbs: 0.6,
+    fats: 5.3,
+    portion: "1 moyen (50g)",
+  },
+  {
+    name: "Pain complet",
+    calories: 247,
+    proteins: 13,
+    carbs: 41,
+    fats: 3.6,
+    portion: "100g",
+  },
+  {
+    name: "Yaourt nature",
+    calories: 59,
+    proteins: 3.6,
+    carbs: 4.7,
+    fats: 3.1,
+    portion: "100g",
+  },
+  {
+    name: "Saumon",
+    calories: 208,
+    proteins: 20,
+    carbs: 0,
+    fats: 13,
+    portion: "100g",
+  },
+  {
+    name: "Avocat",
+    calories: 160,
+    proteins: 2,
+    carbs: 9,
+    fats: 15,
+    portion: "1/2 moyen (100g)",
+  },
+  {
+    name: "Lait demi-écrémé",
+    calories: 42,
+    proteins: 3.5,
+    carbs: 5,
+    fats: 1.5,
+    portion: "100ml",
+  },
+];
+
+// Base de données d'activités par défaut
+const defaultActivityLibrary = [
+  { name: "Marche", caloriesPerMinute: 4, intensity: "légère" },
+  { name: "Course à pied", caloriesPerMinute: 10, intensity: "intense" },
+  { name: "Vélo", caloriesPerMinute: 7, intensity: "modérée" },
+  { name: "Natation", caloriesPerMinute: 8, intensity: "modérée" },
+  { name: "Yoga", caloriesPerMinute: 3, intensity: "légère" },
+  { name: "Musculation", caloriesPerMinute: 6, intensity: "modérée" },
+  { name: "Danse", caloriesPerMinute: 5, intensity: "modérée" },
+  { name: "Football", caloriesPerMinute: 8, intensity: "intense" },
+  { name: "Jardinage", caloriesPerMinute: 4, intensity: "légère" },
+  { name: "Ménage", caloriesPerMinute: 3, intensity: "légère" },
+];
+
 // Chargement des données au démarrage
 let userData = loadFromLocalStorage(USER_DATA_KEY) || defaultUserData;
 let weightData = loadFromLocalStorage(WEIGHT_DATA_KEY) || [];
 let foodData = loadFromLocalStorage(FOOD_DATA_KEY) || [];
 let activityData = loadFromLocalStorage(ACTIVITY_DATA_KEY) || [];
+let foodLibrary = loadFromLocalStorage(FOOD_LIBRARY_KEY) || defaultFoodLibrary;
 
 // Fonctions utilitaires
 function loadFromLocalStorage(key) {
@@ -47,6 +147,8 @@ document.addEventListener("DOMContentLoaded", function () {
   loadUserProfile();
   updateDashboard();
   initWeightSection();
+  initFoodSection();
+  initActivitySection();
   setupEventListeners();
 });
 
@@ -277,6 +379,7 @@ function updateRecentActivities() {
             <span class="activity-name">${activity.name}</span>
             <span class="activity-details">
                 <span class="activity-date">${formatDate(activity.date)}</span>
+                <span class="activity-duration">${activity.duration} min</span>
                 <span class="activity-calories">${activity.calories} kcal</span>
             </span>
         `;
@@ -392,6 +495,181 @@ function updateWeightChart() {
   });
 }
 
+// Initialisation de la section de suivi alimentaire
+function initFoodSection() {
+  // Initialiser la date du jour pour le formulaire d'ajout d'aliment
+  const foodDateInputs = document.querySelectorAll(".food-date-input");
+  foodDateInputs.forEach((input) => {
+    input.value = getDateString(new Date());
+  });
+
+  // Charger la bibliothèque d'aliments
+  updateFoodLibrary();
+
+  // Configurer la recherche d'aliments
+  setupFoodSearch();
+}
+
+// Mise à jour de la bibliothèque d'aliments
+function updateFoodLibrary() {
+  const libraryContainer = document.getElementById("food-library-list");
+  if (!libraryContainer) return;
+
+  libraryContainer.innerHTML = "";
+
+  foodLibrary.forEach((food, index) => {
+    const foodItem = document.createElement("div");
+    foodItem.className = "food-item";
+    foodItem.innerHTML = `
+            <div class="food-item-details">
+                <h4>${food.name}</h4>
+                <p>${food.calories} kcal | P: ${food.proteins}g | G: ${food.carbs}g | L: ${food.fats}g</p>
+                <p>Portion: ${food.portion}</p>
+            </div>
+            <div class="food-item-actions">
+                <button class="btn-add-food" data-index="${index}">Ajouter</button>
+            </div>
+        `;
+    libraryContainer.appendChild(foodItem);
+  });
+
+  // Ajouter des écouteurs pour les boutons d'ajout
+  document.querySelectorAll(".btn-add-food").forEach((button) => {
+    button.addEventListener("click", function () {
+      const foodIndex = parseInt(this.dataset.index);
+      const selectedFood = foodLibrary[foodIndex];
+
+      // Remplir le formulaire d'ajout de repas
+      document.getElementById("food-name").value = selectedFood.name;
+      document.getElementById("food-calories").value = selectedFood.calories;
+      document.getElementById("food-proteins").value = selectedFood.proteins;
+      document.getElementById("food-carbs").value = selectedFood.carbs;
+      document.getElementById("food-fats").value = selectedFood.fats;
+
+      // Activer l'onglet d'ajout de repas
+      document.getElementById("tab-add-food").click();
+    });
+  });
+}
+
+// Configuration de la recherche d'aliments
+function setupFoodSearch() {
+  const searchInput = document.getElementById("food-search");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", function () {
+    const query = this.value.toLowerCase();
+    const foodItems = document.querySelectorAll(".food-item");
+
+    foodItems.forEach((item) => {
+      const foodName = item.querySelector("h4").textContent.toLowerCase();
+      if (foodName.includes(query)) {
+        item.style.display = "flex";
+      } else {
+        item.style.display = "none";
+      }
+    });
+  });
+}
+
+// Initialisation de la section d'activité
+function initActivitySection() {
+  // Initialiser la date du jour pour le formulaire d'ajout d'activité
+  const activityDateInput = document.getElementById("activity-date");
+  if (activityDateInput) {
+    activityDateInput.value = getDateString(new Date());
+  }
+
+  // Remplir la liste des activités
+  const activitySelect = document.getElementById("activity-type");
+  if (activitySelect) {
+    activitySelect.innerHTML =
+      '<option value="">Sélectionnez une activité</option>';
+    defaultActivityLibrary.forEach((activity) => {
+      const option = document.createElement("option");
+      option.value = activity.name;
+      option.textContent = `${activity.name} (${activity.intensity})`;
+      option.dataset.calories = activity.caloriesPerMinute;
+      activitySelect.appendChild(option);
+    });
+
+    // Ajouter un écouteur d'événements pour calculer les calories brûlées
+    activitySelect.addEventListener("change", calculateActivityCalories);
+    document
+      .getElementById("activity-duration")
+      .addEventListener("input", calculateActivityCalories);
+  }
+
+  // Mettre à jour l'historique des activités
+  updateActivityHistory();
+}
+
+// Calcul des calories brûlées pour une activité
+function calculateActivityCalories() {
+  const activitySelect = document.getElementById("activity-type");
+  const durationInput = document.getElementById("activity-duration");
+  const caloriesOutput = document.getElementById("activity-calories");
+
+  if (!activitySelect || !durationInput || !caloriesOutput) return;
+
+  const selectedOption = activitySelect.options[activitySelect.selectedIndex];
+  const duration = parseFloat(durationInput.value) || 0;
+
+  if (selectedOption && selectedOption.dataset.calories) {
+    const caloriesPerMinute = parseFloat(selectedOption.dataset.calories);
+    const totalCalories = Math.round(caloriesPerMinute * duration);
+    caloriesOutput.value = totalCalories;
+  } else {
+    caloriesOutput.value = "";
+  }
+}
+
+// Mise à jour de l'historique des activités
+function updateActivityHistory() {
+  const historyContainer = document.getElementById("activity-history");
+  if (!historyContainer) return;
+
+  historyContainer.innerHTML = "";
+
+  if (activityData.length === 0) {
+    historyContainer.innerHTML = "<p>Aucune activité enregistrée</p>";
+    return;
+  }
+
+  // Trier par date (plus récent en premier)
+  const sortedActivities = [...activityData].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
+  sortedActivities.forEach((activity, index) => {
+    const activityItem = document.createElement("div");
+    activityItem.className = "activity-item";
+    activityItem.innerHTML = `
+            <div class="activity-item-details">
+                <h4>${activity.name}</h4>
+                <p>Date: ${formatDate(activity.date)}</p>
+                <p>Durée: ${activity.duration} minutes</p>
+                <p>Calories brûlées: ${activity.calories} kcal</p>
+            </div>
+            <div class="activity-item-actions">
+                <button class="btn-delete-activity" data-index="${index}">Supprimer</button>
+            </div>
+        `;
+    historyContainer.appendChild(activityItem);
+  });
+
+  // Ajouter des écouteurs pour les boutons de suppression
+  document.querySelectorAll(".btn-delete-activity").forEach((button) => {
+    button.addEventListener("click", function () {
+      const activityIndex = parseInt(this.dataset.index);
+      activityData.splice(activityIndex, 1);
+      saveToLocalStorage(ACTIVITY_DATA_KEY, activityData);
+      updateActivityHistory();
+      updateDashboard();
+    });
+  });
+}
+
 // Configuration des écouteurs d'événements
 function setupEventListeners() {
   // Enregistrer le profil
@@ -457,56 +735,133 @@ function setupEventListeners() {
     alert("Poids enregistré avec succès !");
   });
 
-  // Ajout d'autres écouteurs d'événements pour les onglets de nourriture
+  // Enregistrer un aliment/repas
+  const saveFood = document.getElementById("save-food");
+  if (saveFood) {
+    saveFood.addEventListener("click", function () {
+      const name = document.getElementById("food-name").value;
+      const calories = parseFloat(
+        document.getElementById("food-calories").value
+      );
+      const proteins = parseFloat(
+        document.getElementById("food-proteins").value
+      );
+      const carbs = parseFloat(document.getElementById("food-carbs").value);
+      const fats = parseFloat(document.getElementById("food-fats").value);
+      const date = document.getElementById("food-date").value;
+
+      if (!name || isNaN(calories) || !date) {
+        alert("Veuillez remplir au moins le nom, les calories et la date.");
+        return;
+      }
+
+      // Ajouter à la liste des aliments consommés
+      const newFood = {
+        name,
+        calories,
+        proteins: isNaN(proteins) ? 0 : proteins,
+        carbs: isNaN(carbs) ? 0 : carbs,
+        fats: isNaN(fats) ? 0 : fats,
+        date,
+      };
+
+      foodData.push(newFood);
+      saveToLocalStorage(FOOD_DATA_KEY, foodData);
+
+      // Mettre à jour le tableau de bord
+      updateDashboard();
+
+      // Réinitialiser le formulaire
+      document.getElementById("food-name").value = "";
+      document.getElementById("food-calories").value = "";
+      document.getElementById("food-proteins").value = "";
+      document.getElementById("food-carbs").value = "";
+      document.getElementById("food-fats").value = "";
+      document.getElementById("food-date").value = getDateString(new Date());
+
+      alert("Aliment enregistré avec succès !");
+    });
+  }
+
+  // Enregistrer une activité
+  const saveActivity = document.getElementById("save-activity");
+  if (saveActivity) {
+    saveActivity.addEventListener("click", function () {
+      const activitySelect = document.getElementById("activity-type");
+      const name = activitySelect.options[activitySelect.selectedIndex].value;
+      const duration = parseFloat(
+        document.getElementById("activity-duration").value
+      );
+      const calories = parseFloat(
+        document.getElementById("activity-calories").value
+      );
+      const date = document.getElementById("activity-date").value;
+
+      if (!name || isNaN(duration) || isNaN(calories) || !date) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      // Ajouter à la liste des activités
+      const newActivity = {
+        name,
+        duration,
+        calories,
+        date,
+      };
+
+      activityData.push(newActivity);
+      saveToLocalStorage(ACTIVITY_DATA_KEY, activityData);
+
+      // Mettre à jour l'interface
+      updateActivityHistory();
+      updateDashboard();
+
+      // Réinitialiser le formulaire
+      activitySelect.selectedIndex = 0;
+      document.getElementById("activity-duration").value = "";
+      document.getElementById("activity-calories").value = "";
+      document.getElementById("activity-date").value = getDateString(
+        new Date()
+      );
+    });
+  }
+
+  // Gestion des onglets de la section alimentaire
   const foodTabs = document.querySelectorAll(".food-tabs button");
   const foodPanels = document.querySelectorAll(".food-panel");
 
   foodTabs.forEach((tab) => {
     tab.addEventListener("click", function () {
-      // Désactiver tous les onglets et panneaux
+      const targetPanel = this.id.replace("tab-", "") + "-panel";
+
+      // Désactiver tous les onglets et panels
       foodTabs.forEach((t) => t.classList.remove("active-tab"));
       foodPanels.forEach((p) => p.classList.remove("active-panel"));
 
-      // Activer l'onglet et le panneau cibles
+      // Activer l'onglet et le panel sélectionnés
       this.classList.add("active-tab");
-      const targetId = this.id.replace("tab-", "") + "-panel";
-      document.getElementById(targetId)?.classList.add("active-panel");
+      document.getElementById(targetPanel).classList.add("active-panel");
     });
   });
 }
 
-// Fonctions pour la gestion des aliments et activités (à compléter selon les fonctionnalités souhaitées)
-function addFood(name, calories, proteins, carbs, fats, date) {
-  const newFood = { name, calories, proteins, carbs, fats, date };
-  foodData.push(newFood);
+// Initialisation du scanner d'aliments (fonctionnalité simulée)
+function initFoodScanner() {
+  const scanButton = document.getElementById("scan-food-button");
+  if (scanButton) {
+    scanButton.addEventListener("click", function () {
+      // Simulation de scan - à remplacer par une vraie implémentation
+      alert("Fonctionnalité de scan non implémentée. Ajout manuel requis.");
+    });
+  }
+}
+
+// Sauvegarde des données avant fermeture de la page
+window.addEventListener("beforeunload", function () {
+  saveToLocalStorage(USER_DATA_KEY, userData);
+  saveToLocalStorage(WEIGHT_DATA_KEY, weightData);
   saveToLocalStorage(FOOD_DATA_KEY, foodData);
-  updateDashboard();
-}
-
-function addActivity(name, calories, duration, date) {
-  const newActivity = { name, calories, duration, date };
-  activityData.push(newActivity);
   saveToLocalStorage(ACTIVITY_DATA_KEY, activityData);
-  updateDashboard();
-}
-
-// Fonction pour rechercher des aliments dans la base de données (à connecter à une API ou base de données locale)
-function searchFood(query) {
-  // Exemple simplifié - à remplacer par une vraie recherche
-  const mockDatabase = [
-    { name: "Pomme", calories: 52, proteins: 0.3, carbs: 14, fats: 0.2 },
-    { name: "Banane", calories: 89, proteins: 1.1, carbs: 23, fats: 0.3 },
-    { name: "Poulet grillé", calories: 165, proteins: 31, carbs: 0, fats: 3.6 },
-    {
-      name: "Riz blanc cuit",
-      calories: 130,
-      proteins: 2.7,
-      carbs: 28,
-      fats: 0.3,
-    },
-  ];
-
-  return mockDatabase.filter((food) =>
-    food.name.toLowerCase().includes(query.toLowerCase())
-  );
-}
+  saveToLocalStorage(FOOD_LIBRARY_KEY, foodLibrary);
+});
